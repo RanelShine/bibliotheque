@@ -160,12 +160,18 @@ def loan_create(request):
 
 @login_required
 def loan_list(request):
-    """Display list of loans."""
+    """Display list of active loans (not returned yet)."""
+    base_query = Loan.objects.filter(return_date__isnull=True).exclude(status='C')
+    
     if request.user.is_staff:
-        loans = Loan.objects.all().order_by('-created_at')
+        loans = base_query.order_by('-loan_date')
     else:
-        loans = Loan.objects.filter(borrower=request.user).order_by('-created_at')
-    return render(request, 'catalogue/loan_list.html', {'loans': loans})
+        loans = base_query.filter(borrower=request.user).order_by('-loan_date')
+    
+    return render(request, 'catalogue/loan_list.html', {
+        'loans': loans,
+        'active_only': True
+    })
 
 @login_required
 def loan_return(request, pk):

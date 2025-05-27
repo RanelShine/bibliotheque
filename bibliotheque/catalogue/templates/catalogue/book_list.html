@@ -10,13 +10,35 @@
     {% endif %}
 </div>
 
-<form method="get" class="mb-4">
-    <div class="input-group">
-        <input type="text" name="query" class="form-control" placeholder="Rechercher un livre..."
-            value="{{ request.GET.query }}">
-        <button type="submit" class="btn btn-outline-secondary">Rechercher</button>
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="mb-0">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="query" class="form-control" placeholder="Rechercher un livre..."
+                            value="{{ request.GET.query }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.category }}
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check mt-2">
+                        {{ form.available_only }}
+                        <label class="form-check-label" for="{{ form.available_only.id_for_label }}">
+                            Disponibles uniquement
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">Rechercher</button>
+                    <a href="{% url 'catalogue:book_list' %}" class="btn btn-secondary">Réinitialiser</a>
+                </div>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 
 <div class="row">
     {% for book in books %}
@@ -36,18 +58,41 @@
                         Disponible: {{ book.available_copies }}/{{ book.total_copies }}
                     </small>
                 </p>
-                <a href="{% url 'catalogue:book_detail' book.pk %}" class="btn btn-info btn-sm">Détails</a>
-                {% if user.is_authenticated %}
-                <a href="{% url 'catalogue:book_update' book.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                <a href="{% url 'catalogue:book_delete' book.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
-                {% endif %}
+                <div class="mt-3">
+                    <a href="{% url 'catalogue:book_detail' book.pk %}" class="btn btn-info btn-sm">Détails</a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'catalogue:book_update' book.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                    <a href="{% url 'catalogue:book_delete' book.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col">
-        <p>Aucun livre trouvé.</p>
+        <div class="alert alert-info">
+            Aucun livre trouvé.
+        </div>
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Style pour les widgets de formulaire */
+    .form-control,
+    .form-select {
+        border-radius: 0.25rem;
+    }
+
+    .card {
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
 {% endblock %}
