@@ -1,0 +1,31 @@
+{% extends 'catalogue/base.html' %}
+
+{% block title %}Retour de prêt{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title">Retour de prêt</h1>
+
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Informations sur le prêt</h4>
+            <p><strong>Livre :</strong> {{ loan.book.title }}</p>
+            <p><strong>Emprunteur :</strong> {{ loan.borrower.username }}</p>
+            <p><strong>Date d'emprunt :</strong> {{ loan.loan_date }}</p>
+            <p><strong>Date de retour prévue :</strong> {{ loan.return_due_date }}</p>
+            {% if loan.is_overdue %}
+            <p class="text-danger"><strong>Retard :</strong> {{ loan.days_overdue }} jour(s)</p>
+            {% endif %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <p>Êtes-vous sûr de vouloir enregistrer le retour de ce livre ?</p>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">Confirmer le retour</button>
+                <a href="{% url 'catalogue:loan_list' %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -9,7 +9,7 @@ from catalogue.models import Book, Author, Category, Loan
 class TestBookViews:
     def test_book_list_view(self, client, book):
         """Test the book list view."""
-        url = reverse('book_list')
+        url = reverse('catalogue:book_list')
         response = client.get(url)
         assert response.status_code == 200
         assert 'books' in response.context
@@ -17,7 +17,7 @@ class TestBookViews:
 
     def test_book_search(self, client, book):
         """Test the book search functionality."""
-        url = reverse('book_list')
+        url = reverse('catalogue:book_list')
         response = client.get(url, {'query': 'Misérables'})
         assert response.status_code == 200
         assert list(response.context['books']) == [book]
@@ -28,7 +28,7 @@ class TestBookViews:
 
     def test_book_detail_view(self, client, book):
         """Test the book detail view."""
-        url = reverse('book_detail', kwargs={'pk': book.pk})
+        url = reverse('catalogue:book_detail', kwargs={'pk': book.pk})
         response = client.get(url)
         assert response.status_code == 200
         assert response.context['book'] == book
@@ -36,7 +36,7 @@ class TestBookViews:
     def test_book_create_view(self, client, admin_user, category, author):
         """Test the book creation view."""
         client.force_login(admin_user)
-        url = reverse('book_create')
+        url = reverse('catalogue:book_create')
         
         # Test GET request
         response = client.get(url)
@@ -57,7 +57,7 @@ class TestBookViews:
     def test_book_update_view(self, client, admin_user, book):
         """Test the book update view."""
         client.force_login(admin_user)
-        url = reverse('book_update', kwargs={'pk': book.pk})
+        url = reverse('catalogue:book_update', kwargs={'pk': book.pk})
         
         # Test GET request
         response = client.get(url)
@@ -81,7 +81,7 @@ class TestAuthorViews:
     def test_author_list_view(self, client, admin_user, author):
         """Test the author list view."""
         client.force_login(admin_user)
-        url = reverse('author_list')
+        url = reverse('catalogue:author_list')
         response = client.get(url)
         assert response.status_code == 200
         assert list(response.context['authors']) == [author]
@@ -89,7 +89,7 @@ class TestAuthorViews:
     def test_author_create_view(self, client, admin_user):
         """Test the author creation view."""
         client.force_login(admin_user)
-        url = reverse('author_create')
+        url = reverse('catalogue:author_create')
         
         # Test GET request
         response = client.get(url)
@@ -110,7 +110,7 @@ class TestLoanViews:
     def test_loan_list_view(self, client, admin_user, loan):
         """Test the loan list view."""
         client.force_login(admin_user)
-        url = reverse('loan_list')
+        url = reverse('catalogue:loan_list')
         response = client.get(url)
         assert response.status_code == 200
         assert list(response.context['loans']) == [loan]
@@ -118,7 +118,7 @@ class TestLoanViews:
     def test_loan_create_view(self, client, admin_user, book, user):
         """Test the loan creation view."""
         client.force_login(admin_user)
-        url = reverse('loan_create')
+        url = reverse('catalogue:loan_create')
         
         # Test GET request
         response = client.get(url)
@@ -138,7 +138,7 @@ class TestLoanViews:
     def test_loan_return_view(self, client, admin_user, loan):
         """Test the loan return view."""
         client.force_login(admin_user)
-        url = reverse('loan_return', kwargs={'pk': loan.pk})
+        url = reverse('catalogue:loan_return', kwargs={'pk': loan.pk})
         
         # Test GET request
         response = client.get(url)
@@ -163,16 +163,16 @@ class TestLoginRequired:
     def test_protected_views(self, client):
         """Test that protected views redirect to login."""
         protected_urls = [
-            reverse('book_create'),
-            reverse('book_update', kwargs={'pk': 1}),
-            reverse('book_delete', kwargs={'pk': 1}),
-            reverse('author_list'),
-            reverse('author_create'),
-            reverse('author_update', kwargs={'pk': 1}),
-            reverse('author_delete', kwargs={'pk': 1}),
-            reverse('loan_list'),
-            reverse('loan_create'),
-            reverse('loan_return', kwargs={'pk': 1}),
+            reverse('catalogue:book_create'),
+            reverse('catalogue:book_update', kwargs={'pk': 1}),
+            reverse('catalogue:book_delete', kwargs={'pk': 1}),
+            reverse('catalogue:author_list'),
+            reverse('catalogue:author_create'),
+            reverse('catalogue:author_update', kwargs={'pk': 1}),
+            reverse('catalogue:author_delete', kwargs={'pk': 1}),
+            reverse('catalogue:loan_list'),
+            reverse('catalogue:loan_create'),
+            reverse('catalogue:loan_return', kwargs={'pk': 1}),
         ]
         
         for url in protected_urls:
