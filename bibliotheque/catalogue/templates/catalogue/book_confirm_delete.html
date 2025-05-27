@@ -1,0 +1,33 @@
+{% extends "catalogue/base.html" %}
+{% load static %}
+
+{% block title %}Supprimer {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Confirmer la suppression</h2>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Êtes-vous sûr de vouloir supprimer le livre "{{ book.title }}" ?</h5>
+            <p class="card-text">
+                Cette action est irréversible. Toutes les informations associées à ce livre seront supprimées.
+            </p>
+            <div class="alert alert-warning">
+                <strong>Attention :</strong>
+                {% if book.loan_set.exists %}
+                Ce livre a des emprunts associés qui seront également supprimés.
+                {% else %}
+                Cette action ne peut pas être annulée.
+                {% endif %}
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                <a href="{% url 'catalogue:book_detail' book.pk %}" class="btn btn-secondary">Annuler</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "catalogue/base.html" %}
+{% load static %}
+
+{% block title %}Supprimer {{ author.first_name }} {{ author.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Confirmer la suppression</h2>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Êtes-vous sûr de vouloir supprimer l'auteur "{{ author.first_name }} {{
+                author.last_name }}" ?</h5>
+            <p class="card-text">
+                Cette action est irréversible. Toutes les informations associées à cet auteur seront supprimées.
+            </p>
+            <div class="alert alert-warning">
+                <strong>Attention :</strong>
+                {% if author.books.exists %}
+                Cet auteur a {{ author.books.count }} livre(s) dans la bibliothèque. La suppression de l'auteur
+                n'affectera pas les livres associés.
+                {% else %}
+                Cette action ne peut pas être annulée.
+                {% endif %}
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                <a href="{% url 'catalogue:author_list' %}" class="btn btn-secondary">Annuler</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

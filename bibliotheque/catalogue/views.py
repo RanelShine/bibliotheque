@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 from .models import Book, Author, Category, Loan
 from .forms import BookForm, AuthorForm, LoanForm, BookSearchForm
+from django.contrib.auth.forms import UserCreationForm
 
 def book_list(request):
     """Display list of books with search functionality."""
@@ -38,14 +39,14 @@ def book_create(request):
         form = BookForm(request.POST)
         if form.is_valid():
             book = form.save()
-            messages.success(request, f'Book "{book.title}" has been created.')
-            return redirect('book_detail', pk=book.pk)
+            messages.success(request, f'Le livre "{book.title}" a été créé avec succès.')
+            return redirect('catalogue:book_detail', pk=book.pk)
     else:
         form = BookForm()
     
     return render(request, 'catalogue/book_form.html', {
         'form': form,
-        'title': 'Add Book'
+        'title': 'Ajouter un livre'
     })
 
 def book_detail(request, pk):
@@ -61,14 +62,14 @@ def book_update(request, pk):
         form = BookForm(request.POST, instance=book)
         if form.is_valid():
             book = form.save()
-            messages.success(request, f'Book "{book.title}" has been updated.')
-            return redirect('book_detail', pk=book.pk)
+            messages.success(request, f'Le livre "{book.title}" a été mis à jour avec succès.')
+            return redirect('catalogue:book_detail', pk=book.pk)
     else:
         form = BookForm(instance=book)
     
     return render(request, 'catalogue/book_form.html', {
         'form': form,
-        'title': 'Edit Book'
+        'title': 'Modifier le livre'
     })
 
 @login_required
@@ -77,9 +78,60 @@ def book_delete(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == 'POST':
         book.delete()
-        messages.success(request, f'Book "{book.title}" has been deleted.')
-        return redirect('book_list')
+        messages.success(request, f'Le livre "{book.title}" a été supprimé avec succès.')
+        return redirect('catalogue:book_list')
     return render(request, 'catalogue/book_confirm_delete.html', {'book': book})
+
+@login_required
+def author_list(request):
+    """Display list of authors."""
+    authors = Author.objects.all()
+    return render(request, 'catalogue/author_list.html', {'authors': authors})
+
+@login_required
+def author_create(request):
+    """Create a new author."""
+    if request.method == 'POST':
+        form = AuthorForm(request.POST)
+        if form.is_valid():
+            author = form.save()
+            messages.success(request, f'L\'auteur "{author}" a été créé avec succès.')
+            return redirect('catalogue:author_list')
+    else:
+        form = AuthorForm()
+    
+    return render(request, 'catalogue/author_form.html', {
+        'form': form,
+        'title': 'Ajouter un auteur'
+    })
+
+@login_required
+def author_update(request, pk):
+    """Update an author."""
+    author = get_object_or_404(Author, pk=pk)
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, instance=author)
+        if form.is_valid():
+            author = form.save()
+            messages.success(request, f'L\'auteur "{author}" a été mis à jour avec succès.')
+            return redirect('catalogue:author_list')
+    else:
+        form = AuthorForm(instance=author)
+    
+    return render(request, 'catalogue/author_form.html', {
+        'form': form,
+        'title': 'Modifier l\'auteur'
+    })
+
+@login_required
+def author_delete(request, pk):
+    """Delete an author."""
+    author = get_object_or_404(Author, pk=pk)
+    if request.method == 'POST':
+        author.delete()
+        messages.success(request, f'L\'auteur "{author}" a été supprimé avec succès.')
+        return redirect('catalogue:author_list')
+    return render(request, 'catalogue/author_confirm_delete.html', {'author': author})
 
 @login_required
 def loan_create(request):
@@ -94,22 +146,25 @@ def loan_create(request):
                 book.available_copies -= 1
                 book.save()
                 loan.save()
-                messages.success(request, f'Book "{book.title}" has been loaned.')
-                return redirect('loan_list')
+                messages.success(request, f'Le livre "{book.title}" a été emprunté avec succès.')
+                return redirect('catalogue:loan_list')
             else:
-                messages.error(request, f'Book "{book.title}" is not available.')
+                messages.error(request, f'Le livre "{book.title}" n\'est pas disponible.')
     else:
         form = LoanForm()
     
     return render(request, 'catalogue/loan_form.html', {
         'form': form,
-        'title': 'New Loan'
+        'title': 'Nouvel emprunt'
     })
 
 @login_required
 def loan_list(request):
     """Display list of loans."""
-    loans = Loan.objects.filter(return_date__isnull=True)
+    if request.user.is_staff:
+        loans = Loan.objects.all().order_by('-created_at')
+    else:
+        loans = Loan.objects.filter(borrower=request.user).order_by('-created_at')
     return render(request, 'catalogue/loan_list.html', {'loans': loans})
 
 @login_required
@@ -126,57 +181,18 @@ def loan_return(request, pk):
             book.available_copies += 1
             book.save()
             
-            messages.success(request, f'Book "{book.title}" has been returned.')
-        return redirect('loan_list')
+            messages.success(request, f'Le livre "{book.title}" a été retourné avec succès.')
+        return redirect('catalogue:loan_list')
     return render(request, 'catalogue/loan_return.html', {'loan': loan})
 
-@login_required
-def author_list(request):
-    """Display list of authors."""
-    authors = Author.objects.all()
-    return render(request, 'catalogue/author_list.html', {'authors': authors})
-
-@login_required
-def author_create(request):
-    """Create a new author."""
+def register(request):
+    """Register a new user."""
     if request.method == 'POST':
-        form = AuthorForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
-            author = form.save()
-            messages.success(request, f'Author "{author}" has been created.')
-            return redirect('author_list')
+            user = form.save()
+            messages.success(request, 'Votre compte a été créé avec succès.')
+            return redirect('login')
     else:
-        form = AuthorForm()
-    
-    return render(request, 'catalogue/author_form.html', {
-        'form': form,
-        'title': 'Add Author'
-    })
-
-@login_required
-def author_update(request, pk):
-    """Update an author."""
-    author = get_object_or_404(Author, pk=pk)
-    if request.method == 'POST':
-        form = AuthorForm(request.POST, instance=author)
-        if form.is_valid():
-            author = form.save()
-            messages.success(request, f'Author "{author}" has been updated.')
-            return redirect('author_list')
-    else:
-        form = AuthorForm(instance=author)
-    
-    return render(request, 'catalogue/author_form.html', {
-        'form': form,
-        'title': 'Edit Author'
-    })
-
-@login_required
-def author_delete(request, pk):
-    """Delete an author."""
-    author = get_object_or_404(Author, pk=pk)
-    if request.method == 'POST':
-        author.delete()
-        messages.success(request, f'Author "{author}" has been deleted.')
-        return redirect('author_list')
-    return render(request, 'catalogue/author_confirm_delete.html', {'author': author})
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form}) 
